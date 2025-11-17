@@ -76,6 +76,59 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * 重置密码
+   */
+  static async resetPassword(req, res, next) {
+    try {
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        throw new UnauthorizedError('请提供旧密码和新密码');
+      }
+
+      // 验证旧密码
+      if (oldPassword !== config.security.adminPassword) {
+        logger.warn('密码重置失败：旧密码错误', { ip: req.ip });
+        throw new UnauthorizedError('旧密码错误');
+      }
+
+      // 验证新密码强度
+      if (newPassword.length < 6) {
+        throw new UnauthorizedError('新密码长度至少为6位');
+      }
+
+      // 更新配置文件中的密码
+      const fs = require('fs');
+      const path = require('path');
+      const configPath = path.join(__dirname, '../config/app.js');
+      
+      // 读取当前配置
+      let configContent = fs.readFileSync(configPath, 'utf8');
+      
+      // 替换密码
+      configContent = configContent.replace(
+        /adminPassword:\s*process\.env\.ADMIN_PASSWORD\s*\|\|\s*['"].*?['"]/,
+        `adminPassword: process.env.ADMIN_PASSWORD || '${newPassword}'`
+      );
+      
+      // 写回配置文件
+      fs.writeFileSync(configPath, configContent, 'utf8');
+      
+      // 更新当前运行时配置
+      config.security.adminPassword = newPassword;
+
+      logger.info('密码重置成功', { ip: req.ip });
+
+      res.json({
+        success: true,
+        message: '密码重置成功，请使用新密码重新登录'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = AuthController;

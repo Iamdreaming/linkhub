@@ -12,7 +12,7 @@
         :model="loginForm"
         :rules="loginRules"
         class="login-form"
-        @keyup.enter="handleLogin"
+        @submit.prevent="handleLogin"
       >
         <el-form-item prop="password">
           <el-input
@@ -23,6 +23,7 @@
             size="large"
             show-password
             clearable
+            @keyup.enter="handleLogin"
           />
         </el-form-item>
         
@@ -31,8 +32,9 @@
             type="primary"
             size="large"
             :loading="loading"
+            :disabled="loading"
             class="login-button"
-            @click="handleLogin"
+            native-type="submit"
           >
             {{ loading ? '登录中...' : '登 录' }}
           </el-button>
@@ -71,22 +73,24 @@ const loginRules = {
 }
 
 const handleLogin = async () => {
-  if (!loginFormRef.value) return
+  if (!loginFormRef.value || loading.value) return
   
-  await loginFormRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        await authStore.login(loginForm.password)
-        ElMessage.success('登录成功')
-        router.push('/dashboard')
-      } catch (error) {
-        ElMessage.error(error.message || '登录失败')
-      } finally {
-        loading.value = false
-      }
+  try {
+    await loginFormRef.value.validate()
+    loading.value = true
+    
+    try {
+      await authStore.login(loginForm.password)
+      ElMessage.success('登录成功')
+      router.push('/dashboard')
+    } catch (error) {
+      ElMessage.error(error.message || '登录失败')
+    } finally {
+      loading.value = false
     }
-  })
+  } catch (error) {
+    // 表单验证失败，不做任何操作
+  }
 }
 </script>
 

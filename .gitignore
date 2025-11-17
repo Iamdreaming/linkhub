@@ -51,3 +51,4 @@ ecosystem.config.js
 
 # Docker
 .dockerignore
+DOCKER_FIX_GUIDE.md

@@ -11,7 +11,7 @@ module.exports = {
   // 安全配置
   security: {
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
-    adminPassword: process.env.ADMIN_PASSWORD || 'admin123456',
+    adminPassword: process.env.ADMIN_PASSWORD || 'xIhz9xN$c*!p9T',
     sessionTimeout: parseInt(process.env.SESSION_TIMEOUT) || 86400 // 24小时
   },
 

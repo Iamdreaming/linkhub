@@ -15,6 +15,7 @@ const { apiLimiter, loginLimiter, qrcodeLimiter } = require('../middleware/rateL
 router.post('/auth/login', loginLimiter, AuthController.login);
 router.get('/auth/verify', authMiddleware, AuthController.verify);
 router.post('/auth/logout', authMiddleware, AuthController.logout);
+router.post('/auth/reset-password', authMiddleware, AuthController.resetPassword);
 
 // ============ 链接管理路由 ============
 router.get('/links', authMiddleware, LinkController.getLinks);

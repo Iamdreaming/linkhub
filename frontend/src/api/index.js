@@ -73,7 +73,8 @@ export const api = {
   auth: {
     login: (password) => request.post('/auth/login', { password }),
     verify: () => request.get('/auth/verify'),
-    logout: () => request.post('/auth/logout')
+    logout: () => request.post('/auth/logout'),
+    resetPassword: (oldPassword, newPassword) => request.post('/auth/reset-password', { oldPassword, newPassword })
   },
 
   // 链接管理

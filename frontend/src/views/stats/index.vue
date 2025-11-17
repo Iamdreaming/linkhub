@@ -305,20 +305,32 @@ const loadStats = async () => {
     // 加载统计概览
     const statsResponse = await api.stats.getLinkStats(selectedLinkId.value, period.value)
     if (statsResponse.success) {
-      Object.assign(stats, statsResponse.data)
-    }
-
-    // 加载趋势数据
-    const trendResponse = await api.stats.getTrend(selectedLinkId.value, period.value)
-    if (trendResponse.success) {
-      trendData.value = trendResponse.data.trend || []
-      hourData.value = trendResponse.data.hourly || []
-    }
-
-    // 加载访问日志
-    const logsResponse = await api.stats.getAccessLogs(selectedLinkId.value, { limit: 10 })
-    if (logsResponse.success) {
-      accessLogs.value = logsResponse.data.items || []
+      const data = statsResponse.data
+      // 修复字段映射：后端返回的字段名与前端期望的不一致
+      stats.totalViews = data.summary?.totalAccess || 0
+      stats.todayViews = data.summary?.todayAccess || 0
+      stats.uniqueVisitors = data.summary?.periodAccess || 0
+      stats.avgDailyViews = data.summary?.avgDailyAccess || 0
+      
+      // 处理趋势数据
+      trendData.value = (data.dailyStats || []).map(item => ({
+        date: item.date,
+        views: item.count || 0
+      }))
+      
+      // 处理小时数据
+      hourData.value = (data.hourlyStats || []).map(item => ({
+        hour: item.hour,
+        views: item.count || 0
+      }))
+      
+      // 处理访问日志
+      accessLogs.value = (data.recentAccess || []).map(item => ({
+        id: Math.random(),
+        accessedAt: item.accessTime,
+        ip: item.ipAddress,
+        userAgent: item.userAgent
+      }))
     }
   } catch (error) {
     ElMessage.error('加载统计数据失败')

@@ -16,7 +16,11 @@
         </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="logout">
+            <el-dropdown-item command="profile">
+              <el-icon><User /></el-icon>
+              个人中心
+            </el-dropdown-item>
+            <el-dropdown-item divided command="logout">
               <el-icon><SwitchButton /></el-icon>
               退出登录
             </el-dropdown-item>
@@ -43,13 +47,16 @@ const breadcrumbTitle = computed(() => {
     '/dashboard': '数据概览',
     '/links': '链接管理',
     '/stats': '统计分析',
-    '/backup': '备份管理'
+    '/backup': '备份管理',
+    '/profile': '个人中心'
   }
   return titleMap[route.path] || ''
 })
 
 const handleCommand = async (command) => {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'logout') {
     try {
       await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
         confirmButtonText: '确定',
