@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信转链工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #07c160;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover {
+            background-color: #06a050;
+        }
+        .links-list {
+            margin-top: 30px;
+        }
+        .link-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #07c160;
+        }
+        .link-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .link-url {
+            color: #666;
+            font-size: 14px;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+        .qr-code {
+            max-width: 150px;
+            height: auto;
+        }
+        .link-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .link-actions a {
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #07c160;
+            color: white;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>微信转链工具</h1>
+        
+        <form id="linkForm">
+            <input type="text" id="linkName" placeholder="链接名称（如：客服、推广等）" required>
+            <input type="text" id="linkUrl" placeholder="微信链接地址" required>
+            <button type="submit">添加链接</button>
+        </form>
+        
+        <div class="links-list" id="linksList">
+            <!-- Links will be populated here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display links on page load
+        document.addEventListener('DOMContentLoaded', fetchLinks);
+        
+        // Handle form submission
+        document.getElementById('linkForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('linkName').value;
+            const url = document.getElementById('linkUrl').value;
+            
+            try {
+                const response = await fetch('/api/links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, url })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('linkForm').reset();
+                    fetchLinks(); // Refresh the links list
+                } else {
+                    alert('添加链接失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('添加链接时发生错误');
+            }
+        });
+        
+        // Fetch and display all links
+        async function fetchLinks() {
+            try {
+                const response = await fetch('/api/links');
+                const links = await response.json();
+                
+                const linksList = document.getElementById('linksList');
+                linksList.innerHTML = '';
+                
+                links.forEach(link => {
+                    const linkElement = document.createElement('div');
+                    linkElement.className = 'link-item';
+                    linkElement.innerHTML = `
+                        <div class="link-name">${link.name}</div>
+                        <div class="link-url">${link.url}</div>
+                        <div class="link-actions">
+                            <a href="/r/${link.id}" target="_blank">访问链接</a>
+                            <a href="/qr/${link.id}" target="_blank">查看二维码</a>
+                        </div>
+                    `;
+                    linksList.appendChild(linkElement);
+                });
+            } catch (error) {
+                console.error('Error fetching links:', error);
+            }
+        }
+    </script>
+</body>
+</html>
