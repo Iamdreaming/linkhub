@@ -1,4 +1,6 @@
 # 多阶段构建 Dockerfile
+# 使用 BuildKit 缓存优化构建速度
+# 构建时需要设置: DOCKER_BUILDKIT=1
 
 # 阶段1：构建前端
 FROM node:20-alpine AS frontend-builder
@@ -13,7 +15,9 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # 配置 npm 淘宝镜像源并安装所有依赖（包括构建工具）
-RUN npm config set registry https://registry.npmmirror.com && \
+# 使用 BuildKit 缓存挂载加速 npm 下载
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set registry https://registry.npmmirror.com && \
     npm install
 
 # 复制前端源代码
@@ -35,10 +39,12 @@ WORKDIR /app/backend
 COPY backend/package*.json ./
 
 # 安装后端生产依赖（包括 better-sqlite3 需要编译）
-RUN apk add --no-cache python3 make g++ && \
+# 使用 BuildKit 缓存挂载加速 npm 下载
+RUN --mount=type=cache,target=/root/.npm \
+    apk add --no-cache --virtual .build-deps python3 make g++ && \
     npm config set registry https://registry.npmmirror.com && \
     npm install --omit=dev && \
-    apk del python3 make g++
+    apk del .build-deps
 
 # 阶段3：最终镜像
 FROM node:20-alpine
